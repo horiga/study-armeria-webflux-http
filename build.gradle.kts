@@ -37,8 +37,8 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:1.5.2")
 
     // R2DBC, MySQL
-    implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
-    implementation("com.github.jasync-sql:jasync-r2dbc-mysql:1.1.3")
+    //implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
+    //implementation("com.github.jasync-sql:jasync-r2dbc-mysql:1.1.3")
 
     // Reactor
     implementation("io.projectreactor.addons:reactor-extra:3.3.3.RELEASE")
