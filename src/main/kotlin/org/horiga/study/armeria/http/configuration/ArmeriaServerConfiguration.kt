@@ -13,6 +13,7 @@ import com.linecorp.armeria.server.logging.LoggingService
 import com.linecorp.armeria.server.metric.MetricCollectingService
 import com.linecorp.armeria.spring.ArmeriaServerConfigurator
 import org.horiga.study.armeria.http.handler.HelloHandler
+import org.horiga.study.armeria.http.handler.MyExceptionHandler
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -21,8 +22,11 @@ class ArmeriaServerConfiguration {
 
     // Refs: https://github.com/line/armeria/blob/master/examples/spring-boot-webflux/src/main/java/example/springframework/boot/webflux/HelloConfiguration.java
     @Bean
-    fun armeriaServerConfigurator(helloHandler: HelloHandler, objectMapper: ObjectMapper) =
-        ArmeriaServerConfigurator { sb ->
+    fun armeriaServerConfigurator(
+        helloHandler: HelloHandler,
+        objectMapper: ObjectMapper,
+        exceptionHandler: MyExceptionHandler
+    ) = ArmeriaServerConfigurator { sb ->
             // Enable if support gRPC or Thrift RPC protocols.
             //sb.serviceUnder("/docs", DocService())
             sb.decorator(
@@ -41,8 +45,12 @@ class ArmeriaServerConfiguration {
                         .withTags("service", "hello"))
                 )
                 .responseConverters(JacksonResponseConverterFunction(objectMapper))
+                .exceptionHandlers(exceptionHandler)
                 .build(helloHandler)
         }
+
+    @Bean
+    fun exceptionHandler(objectMapper: ObjectMapper) = MyExceptionHandler(objectMapper)
 
     @Bean
     fun objectMapper() = jacksonObjectMapper()
