@@ -5,7 +5,6 @@ extra["kotlin.version"] = "1.4.0"
 plugins {
     id("idea")
     id("java")
-
     id("org.springframework.boot") version "2.3.3.RELEASE"
     id("io.spring.dependency-management") version "1.0.9.RELEASE"
 
@@ -27,7 +26,7 @@ dependencyManagement {
     imports {
         mavenBom("com.linecorp.armeria:armeria-bom:1.0.0")
         mavenBom("io.netty:netty-bom:4.1.51.Final")
-        mavenBom("org.testcontainers:testcontainers-bom:1.14.3")
+        // mavenBom("org.testcontainers:testcontainers-bom:1.14.3")
     }
 }
 
@@ -63,8 +62,8 @@ dependencies {
     }
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("io.mockk:mockk:1.9.3")
-    testImplementation("org.testcontainers:testcontainers")
-    // testImplementation("org.testcontainers:junit-jupiter:1.14.3")
+    testImplementation("org.testcontainers:testcontainers:1.14.3")
+    testImplementation("org.testcontainers:junit-jupiter:1.14.3")
 
     ktlint("com.pinterest:ktlint:0.38.1")
 }

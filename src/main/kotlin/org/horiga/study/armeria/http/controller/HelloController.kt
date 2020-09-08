@@ -1,6 +1,6 @@
 package org.horiga.study.armeria.http.controller
 
-import com.fasterxml.jackson.annotation.JsonProperty
+// import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -10,7 +10,7 @@ import java.time.Instant
 
 data class HelloReply(
     val message: String,
-    @JsonProperty("received_at")
+    // @JsonProperty("received_at")
     val receivedAt: Instant
 )
 

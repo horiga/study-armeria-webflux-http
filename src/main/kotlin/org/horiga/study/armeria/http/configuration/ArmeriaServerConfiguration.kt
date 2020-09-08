@@ -14,6 +14,7 @@ import com.linecorp.armeria.server.metric.MetricCollectingService
 import com.linecorp.armeria.spring.ArmeriaServerConfigurator
 import org.horiga.study.armeria.http.handler.HelloHandler
 import org.horiga.study.armeria.http.handler.MyExceptionHandler
+import org.horiga.study.armeria.http.handler.TestHandler
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -24,6 +25,7 @@ class ArmeriaServerConfiguration {
     @Bean
     fun armeriaServerConfigurator(
         helloHandler: HelloHandler,
+        testHandler: TestHandler,
         objectMapper: ObjectMapper,
         exceptionHandler: MyExceptionHandler
     ) = ArmeriaServerConfigurator { sb ->
@@ -49,6 +51,18 @@ class ArmeriaServerConfiguration {
             .responseConverters(JacksonResponseConverterFunction(objectMapper))
             .exceptionHandlers(exceptionHandler)
             .build(helloHandler)
+
+        sb.annotatedService()
+            .decorator(
+                MetricCollectingService.newDecorator(
+                    MeterIdPrefixFunction
+                        .ofDefault("armeria.server.http")
+                        .withTags("service", "test")
+                )
+            )
+            .responseConverters(JacksonResponseConverterFunction(objectMapper))
+            .exceptionHandlers(exceptionHandler)
+            .build(testHandler)
     }
 
     @Bean

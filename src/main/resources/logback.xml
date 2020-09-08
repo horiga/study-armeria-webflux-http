@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+  <appender name="console-inner" class="ch.qos.logback.core.ConsoleAppender">
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <Pattern>%date %t %highlight(%-5level) %cyan(%logger{15} [%file:%method:%line]) %X{req.headers.user-agent} - %msg%n</Pattern>
+    </layout>
+  </appender>
+
+  <appender name="console" class="com.linecorp.armeria.common.logback.RequestContextExportingAppender">
+    <!-- see: https://armeria.dev/docs/advanced-logging  -->
+    <appender-ref ref="console-inner" />
+    <export>req.headers.user-agent</export>
+    <!-- setup anything -->
+  </appender>
+
+  <root level="DEBUG">
+    <appender-ref ref="console" />
+  </root>
+</configuration>
