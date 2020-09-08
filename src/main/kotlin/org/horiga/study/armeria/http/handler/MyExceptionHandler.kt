@@ -23,7 +23,7 @@ class MyExceptionHandler(private val objectMapper: ObjectMapper) : ExceptionHand
         cause: Throwable
     ): HttpResponse {
         log.warn("Handle HTTP exception: ${req.method()} ${req.path()}, cause: $cause", cause)
-        val state = when(cause) {
+        val state = when (cause) {
             is IllegalStateException -> HttpStatus.BAD_REQUEST
             else -> HttpStatus.INTERNAL_SERVER_ERROR
         }

@@ -1,4 +1,9 @@
 spring.profiles.active: local
+spring.r2dbc:
+  url: r2dbc:mysql://localhost:3306/testdb?characterEncoding=UTF-8&useSSL=false
+  username: test
+  password: test
+
 server:
   port: 8080
 
