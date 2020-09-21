@@ -10,7 +10,12 @@ import java.time.Duration
 class TestService(
     val testRepository: TestRepository
 ) {
-    fun search(name: String): Flux<TestEntity> =
-        testRepository.findByName("%$name%")
-            .timeout(Duration.ofMillis(3000))
+    // test, what difference throw, Flux.error
+    fun search(name: String): Flux<TestEntity> = when(name) {
+        "error" -> Flux.error(IllegalStateException("The name is error."))
+        "throw" -> throw IllegalStateException("The name is error.")
+        else -> search1(name).map { entity -> entity.copy(type = entity.type.toUpperCase()) }
+    }
+
+    fun search1(name: String): Flux<TestEntity> = testRepository.findByName("%$name%")
 }
