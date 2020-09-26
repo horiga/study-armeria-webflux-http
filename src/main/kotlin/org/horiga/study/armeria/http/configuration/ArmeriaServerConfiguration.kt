@@ -14,6 +14,7 @@ import com.linecorp.armeria.server.metric.MetricCollectingService
 import com.linecorp.armeria.spring.ArmeriaServerConfigurator
 import org.horiga.study.armeria.http.handler.HelloHandler
 import org.horiga.study.armeria.http.handler.MyExceptionHandler
+import org.horiga.study.armeria.http.handler.TestHandler
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -24,30 +25,45 @@ class ArmeriaServerConfiguration {
     @Bean
     fun armeriaServerConfigurator(
         helloHandler: HelloHandler,
+        testHandler: TestHandler,
         objectMapper: ObjectMapper,
         exceptionHandler: MyExceptionHandler
     ) = ArmeriaServerConfigurator { sb ->
-            // Enable if support gRPC or Thrift RPC protocols.
-            //sb.serviceUnder("/docs", DocService())
-            sb.decorator(
-                LoggingService.builder()
-                    .requestLogLevel(LogLevel.DEBUG)
-                    .successfulResponseLogLevel(LogLevel.DEBUG)
-                    .failureResponseLogLevel(LogLevel.WARN)
-                    .newDecorator()
-            )
-            sb.accessLogWriter(AccessLogWriter.combined(), false)
+        // Enable if support gRPC or Thrift RPC protocols.
+        // sb.serviceUnder("/docs", DocService())
+        sb.decorator(
+            LoggingService.builder()
+                .requestLogLevel(LogLevel.DEBUG)
+                .successfulResponseLogLevel(LogLevel.DEBUG)
+                .failureResponseLogLevel(LogLevel.WARN)
+                .newDecorator()
+        )
+        sb.accessLogWriter(AccessLogWriter.combined(), false)
 
-            sb.annotatedService()
-                .decorator(MetricCollectingService.newDecorator(
+        sb.annotatedService()
+            .decorator(
+                MetricCollectingService.newDecorator(
                     MeterIdPrefixFunction
                         .ofDefault("armeria.server.http")
-                        .withTags("service", "hello"))
+                        .withTags("service", "hello")
                 )
-                .responseConverters(JacksonResponseConverterFunction(objectMapper))
-                .exceptionHandlers(exceptionHandler)
-                .build(helloHandler)
-        }
+            )
+            .responseConverters(JacksonResponseConverterFunction(objectMapper))
+            .exceptionHandlers(exceptionHandler)
+            .build(helloHandler)
+
+        sb.annotatedService()
+            .decorator(
+                MetricCollectingService.newDecorator(
+                    MeterIdPrefixFunction
+                        .ofDefault("armeria.server.http")
+                        .withTags("service", "test")
+                )
+            )
+            .responseConverters(JacksonResponseConverterFunction(objectMapper))
+            .exceptionHandlers(exceptionHandler)
+            .build(testHandler)
+    }
 
     @Bean
     fun exceptionHandler(objectMapper: ObjectMapper) = MyExceptionHandler(objectMapper)
