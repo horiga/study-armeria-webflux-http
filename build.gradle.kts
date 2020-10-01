@@ -65,7 +65,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:1.14.3")
     testImplementation("org.testcontainers:junit-jupiter:1.14.3")
 
-    ktlint("com.pinterest:ktlint:0.38.1")
+    ktlint("com.pinterest:ktlint:0.39.0")
 }
 
 tasks.withType<Test> {
