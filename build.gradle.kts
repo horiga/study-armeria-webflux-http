@@ -5,8 +5,8 @@ extra["kotlin.version"] = "1.4.0"
 plugins {
     id("idea")
     id("java")
-    id("org.springframework.boot") version "2.3.3.RELEASE"
-    id("io.spring.dependency-management") version "1.0.9.RELEASE"
+    id("org.springframework.boot") version "2.3.4.RELEASE"
+    id("io.spring.dependency-management") version "1.0.10.RELEASE"
 
     kotlin("jvm") version "1.4.0"
     kotlin("plugin.spring") version "1.4.0"
@@ -24,8 +24,8 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom("com.linecorp.armeria:armeria-bom:1.0.0")
-        mavenBom("io.netty:netty-bom:4.1.51.Final")
+        mavenBom("com.linecorp.armeria:armeria-bom:1.1.0")
+        mavenBom("io.netty:netty-bom:4.1.52.Final")
         // mavenBom("org.testcontainers:testcontainers-bom:1.14.3")
     }
 }
