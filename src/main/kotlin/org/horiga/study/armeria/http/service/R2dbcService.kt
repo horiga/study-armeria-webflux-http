@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 
 @Service
-class TestService(
+class R2dbcService(
     val testRepository: TestRepository
 ) {
     // test, what difference throw, Flux.error

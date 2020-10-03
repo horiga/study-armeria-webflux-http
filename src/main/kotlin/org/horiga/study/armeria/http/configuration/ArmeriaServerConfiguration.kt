@@ -20,7 +20,7 @@ import com.linecorp.armeria.spring.ArmeriaServerConfigurator
 import io.netty.util.AttributeKey
 import org.horiga.study.armeria.http.handler.HelloHandler
 import org.horiga.study.armeria.http.handler.MyExceptionHandler
-import org.horiga.study.armeria.http.handler.TestHandler
+import org.horiga.study.armeria.http.handler.R2dbcHandler
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -46,7 +46,7 @@ class ArmeriaServerConfiguration {
     @Bean
     fun armeriaServerConfigurator(
         helloHandler: HelloHandler,
-        testHandler: TestHandler,
+        r2dbcHandler: R2dbcHandler,
         objectMapper: ObjectMapper,
         exceptionHandler: MyExceptionHandler
     ) = ArmeriaServerConfigurator { sb ->
@@ -84,7 +84,7 @@ class ArmeriaServerConfiguration {
             .decorator { delegate -> MyTestDecorator(delegate) }
             .responseConverters(JacksonResponseConverterFunction(objectMapper))
             .exceptionHandlers(exceptionHandler)
-            .build(testHandler)
+            .build(r2dbcHandler)
     }
 
     @Bean

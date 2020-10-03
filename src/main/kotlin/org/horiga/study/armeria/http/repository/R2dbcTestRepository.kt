@@ -22,7 +22,7 @@ data class TestEntity(
 )
 
 @Repository
-interface TestRepository : ReactiveCrudRepository<TestEntity, String> {
+interface R2dbcTestRepository : ReactiveCrudRepository<TestEntity, String> {
 
     @Query("SELECT * FROM test WHERE name LIKE :name")
     fun findByName(name: String): Flux<TestEntity>
