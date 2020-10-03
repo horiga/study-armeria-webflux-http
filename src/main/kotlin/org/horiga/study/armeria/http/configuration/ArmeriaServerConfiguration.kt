@@ -5,18 +5,39 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.linecorp.armeria.common.HttpRequest
+import com.linecorp.armeria.common.HttpResponse
 import com.linecorp.armeria.common.logging.LogLevel
 import com.linecorp.armeria.common.metric.MeterIdPrefixFunction
+import com.linecorp.armeria.server.HttpService
+import com.linecorp.armeria.server.ServiceRequestContext
+import com.linecorp.armeria.server.SimpleDecoratingHttpService
 import com.linecorp.armeria.server.annotation.JacksonResponseConverterFunction
 import com.linecorp.armeria.server.logging.AccessLogWriter
 import com.linecorp.armeria.server.logging.LoggingService
 import com.linecorp.armeria.server.metric.MetricCollectingService
 import com.linecorp.armeria.spring.ArmeriaServerConfigurator
+import io.netty.util.AttributeKey
 import org.horiga.study.armeria.http.handler.HelloHandler
 import org.horiga.study.armeria.http.handler.MyExceptionHandler
 import org.horiga.study.armeria.http.handler.TestHandler
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import java.util.UUID
+
+class MyTestDecorator(delegate: HttpService): SimpleDecoratingHttpService(delegate) {
+
+    companion object {
+        val log = LoggerFactory.getLogger(MyTestDecorator::class.java)!!
+        val REQUEST_ID = AttributeKey.valueOf<String>(String::class.java, "request_id")!!
+    }
+
+    override fun serve(ctx: ServiceRequestContext, req: HttpRequest): HttpResponse {
+        ctx.setAttr(REQUEST_ID, req.headers()["x-request-id"] ?: UUID.randomUUID().toString())
+        return unwrap().serve(ctx, req)
+    }
+}
 
 @Configuration
 class ArmeriaServerConfiguration {
@@ -60,6 +81,7 @@ class ArmeriaServerConfiguration {
                         .withTags("service", "test")
                 )
             )
+            .decorator { delegate -> MyTestDecorator(delegate) }
             .responseConverters(JacksonResponseConverterFunction(objectMapper))
             .exceptionHandlers(exceptionHandler)
             .build(testHandler)
