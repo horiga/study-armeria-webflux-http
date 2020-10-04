@@ -19,6 +19,7 @@ import com.linecorp.armeria.server.metric.MetricCollectingService
 import com.linecorp.armeria.spring.ArmeriaServerConfigurator
 import io.netty.util.AttributeKey
 import org.horiga.study.armeria.http.handler.HelloHandler
+import org.horiga.study.armeria.http.handler.IsbnHandler
 import org.horiga.study.armeria.http.handler.MyExceptionHandler
 import org.horiga.study.armeria.http.handler.R2dbcHandler
 import org.slf4j.LoggerFactory
@@ -47,6 +48,7 @@ class ArmeriaServerConfiguration {
     fun armeriaServerConfigurator(
         helloHandler: HelloHandler,
         r2dbcHandler: R2dbcHandler,
+        isbnHandler: IsbnHandler,
         objectMapper: ObjectMapper,
         exceptionHandler: MyExceptionHandler
     ) = ArmeriaServerConfigurator { sb ->
@@ -60,6 +62,18 @@ class ArmeriaServerConfiguration {
                 .newDecorator()
         )
         sb.accessLogWriter(AccessLogWriter.combined(), false)
+
+        sb.annotatedService()
+            .decorator(
+                MetricCollectingService.newDecorator(
+                    MeterIdPrefixFunction
+                        .ofDefault("armeria.server.http")
+                        .withTags("service", "book")
+                )
+            )
+            .responseConverters(JacksonResponseConverterFunction(objectMapper))
+            .exceptionHandlers(exceptionHandler)
+            .build(isbnHandler)
 
         sb.annotatedService()
             .decorator(

@@ -1,13 +1,13 @@
 package org.horiga.study.armeria.http.service
 
+import org.horiga.study.armeria.http.repository.R2dbcTestRepository
 import org.horiga.study.armeria.http.repository.TestEntity
-import org.horiga.study.armeria.http.repository.TestRepository
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 
 @Service
 class R2dbcService(
-    val testRepository: TestRepository
+    val r2dbcTestRepository: R2dbcTestRepository
 ) {
     // test, what difference throw, Flux.error
     fun search(name: String): Flux<TestEntity> = when (name) {
@@ -16,5 +16,5 @@ class R2dbcService(
         else -> search1(name).map { entity -> entity.copy(type = entity.type.toUpperCase()) }
     }
 
-    fun search1(name: String): Flux<TestEntity> = testRepository.findByName("%$name%")
+    fun search1(name: String): Flux<TestEntity> = r2dbcTestRepository.findByName("%$name%")
 }
