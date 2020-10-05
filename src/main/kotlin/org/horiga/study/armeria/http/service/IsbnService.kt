@@ -15,11 +15,14 @@ import reactor.core.publisher.Mono
 import reactor.core.publisher.Signal
 import reactor.kotlin.core.publisher.toMono
 import java.time.Duration
-import java.util.Optional
 
 data class Book(
     val summary: Summary
 ) {
+    companion object {
+        fun empty() = Book(Summary("", "", "", "", "", ""))
+    }
+
     data class Summary(
         val isbn: String,
         val title: String,
@@ -41,63 +44,79 @@ class IsbnService(val objectMapper: ObjectMapper) {
         .responseTimeout(Duration.ofMillis(3000)).build()
 
     val cache: Cache<String, Book> = Caffeine.newBuilder()
-        .expireAfterWrite(Duration.ofSeconds(20))
+        .maximumSize(100)
+        .expireAfterWrite(Duration.ofSeconds(60))
         .recordStats()
         .build()
 
     fun findByIsbn(isbn: String, useCache: Boolean = true): Mono<Book> =
         if (useCache) {
-            // TODO: lookup がまだ正常に動いてない？
             CacheMono.lookup<String, Book>(
                 { key ->
-                    Mono.justOrEmpty(cache.getIfPresent(key)).map {
-                        log.info(">> Cached: $it")
-                        Signal.next(it)
+                    Mono.justOrEmpty(cache.getIfPresent(key)).map { book ->
+                        log.info(">> Hit from cached store($key): $book")
+                        Signal.next(book)
                     }
                 },
                 isbn
             )
                 .onCacheMissResume {
-                    log.info(">> onCacheMissResume")
-                    fromNetwork(isbn)
+                    log.info("[[ onCacheMissResume ]]") // これはcacheにあっても毎回呼ばれる
+                    // Mono.deferしとかないとfromNetwork呼ばれちゃうので注意が必要だった
+                    Mono.defer {
+                        fromNetwork(isbn).doOnSubscribe { _ ->
+                            // subscribe は cache に無いとき、すなわちfromNetworkが呼び出されるときだけ呼ばれる
+                            log.info("(onCacheMissResume/subscribe, Really fetch from network")
+                        }
+                    }
                 }
                 .andWriteWith { key, signal ->
-                    log.info(">> andWriteWith")
-                    Mono.fromRunnable() {
-                        Optional.ofNullable(signal.get()).ifPresent { book ->
-                            log.info("Put to cache store: key=$key")
+                    Mono.fromRunnable<Void> {
+                        log.info(">> andWriteWith: signal.get()=${signal.get()}")
+                        signal.get()?.let { book ->
+                            log.info("[[ Put to cache store: key=$key ]]")
                             cache.put(key, book)
                         }
                     }
+                }
+                .onErrorResume { err ->
+                    log.error("Error, fetch from cache or network. isbn=$isbn", err)
+                    Mono.just(Book.empty())
                 }
         } else fromNetwork(isbn)
 
     // https://api.openbd.jp/v1/get?isbn=978-4-7808-0204-7
     // - This API response '[null]', if not found that ISBN code.
-    private fun fromNetwork(isbn: String): Mono<Book> = client.execute(
-        RequestHeaders.of(
-            HttpMethod.GET, "/v1/get?isbn=$isbn",
-            HttpHeaderNames.ACCEPT, "application/json"
-        )
-    ).aggregate().handleAsync { res, err ->
-        when {
-            err != null -> throw IllegalStateException(err)
-            res.status().isSuccess -> {
-                val content = res.contentUtf8()
-                log.info(
-                    "fetch from network!! ISBN=$isbn, " +
-                        "res.contentUtf8().isEmpty()=${res.contentUtf8().isEmpty()}, "
-                    // "content=$content"
-                )
-                if (res.contentUtf8().isEmpty()) return@handleAsync null
-                val result: List<Book> = objectMapper.readValue(content)
-                if (result.isNotEmpty()) result[0]
-                else throw NoSuchElementException("Not found!!")
+    private fun fromNetwork(isbn: String): Mono<Book> =
+        client.execute(
+            RequestHeaders.of(
+                HttpMethod.GET, "/v1/get?isbn=$isbn",
+                HttpHeaderNames.ACCEPT, "application/json"
+            )
+        ).aggregate().handleAsync { res, err ->
+            when {
+                err != null -> throw IllegalStateException(err)
+                res.status().isSuccess -> {
+                    val content = res.contentUtf8()
+                    log.info(
+                        "fetch from network!! ISBN=$isbn, " +
+                            "res.contentUtf8().isEmpty()=${res.contentUtf8().isEmpty()}, "
+                        // "content=$content"
+                    )
+                    if (res.contentUtf8().isEmpty()) return@handleAsync null
+                    val result: List<Book> = objectMapper.readValue(content)
+                    if (result.isNotEmpty()) result[0]
+                    else throw NoSuchElementException("Not found!!")
+                }
+                else -> {
+                    log.info(
+                        "Received HTTP ${
+                            res.status().code()
+                        } from /v1/get?isbn=$isbn, ${res.contentUtf8()}"
+                    )
+                    throw IllegalStateException("Received HTTP ${res.status().code()} from /v1/get?isbn=$isbn")
+                }
             }
-            else -> {
-                log.info("Received HTTP ${res.status().code()} from /v1/get?isbn=$isbn, ${res.contentUtf8()}")
-                throw IllegalStateException("Received HTTP ${res.status().code()} from /v1/get?isbn=$isbn")
-            }
-        }
-    }.toMono()
+        }.toMono()
+
 }

@@ -21,10 +21,7 @@ class IsbnHandler(val isbnService: IsbnService) {
     @Get("/book")
     @Produces("application/json; charset=utf-8") // for JacksonResponseConverterFunction
     fun findByIsbn(
-        @Param("isbn") isbn: String = "Sarah",
-        @Param("cache") @Default("false") cache: Boolean = false
-    ): Mono<Book> {
-        log.info("IsbnHandler::findByIsbn isbn=$isbn, cache=$cache")
-        return isbnService.findByIsbn(isbn, cache)
-    }
+        @Param("isbn") isbn: String = "978-4-7808-0204-7",
+        @Param("cache") @Default("true") cache: Boolean
+    ): Mono<Book> = isbnService.findByIsbn(isbn, cache)
 }
