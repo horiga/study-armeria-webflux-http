@@ -18,3 +18,5 @@ management:
       base-path: /management
       exposure:
         include: health,prometheus,env,info,configprops,mappings,conditions,beans,loggers,caches
+
+myapp.book.endpoint: https://api.openbd.jp

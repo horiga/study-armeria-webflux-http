@@ -8,6 +8,7 @@ import com.linecorp.armeria.common.HttpMethod
 import com.linecorp.armeria.common.RequestHeaders
 import com.linecorp.armeria.internal.shaded.caffeine.cache.Cache
 import com.linecorp.armeria.internal.shaded.caffeine.cache.Caffeine
+import org.horiga.study.armeria.http.configuration.MyApplicationProperties
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.cache.CacheMono
@@ -34,13 +35,16 @@ data class Book(
 }
 
 @Service
-class IsbnService(val objectMapper: ObjectMapper) {
+class BookService(
+    val objectMapper: ObjectMapper,
+    private val properties: MyApplicationProperties
+) {
 
     companion object {
-        val log = LoggerFactory.getLogger(IsbnService::class.java)!!
+        val log = LoggerFactory.getLogger(BookService::class.java)!!
     }
 
-    val client = WebClient.builder("https://api.openbd.jp")
+    val client = WebClient.builder(properties.book.endpoint)
         .responseTimeout(Duration.ofMillis(3000)).build()
 
     val cache: Cache<String, Book> = Caffeine.newBuilder()

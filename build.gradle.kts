@@ -62,8 +62,12 @@ dependencies {
     }
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("io.mockk:mockk:1.9.3")
-    testImplementation("org.testcontainers:testcontainers:1.14.3")
-    testImplementation("org.testcontainers:junit-jupiter:1.14.3")
+    testImplementation("org.testcontainers:testcontainers:1.15.0-rc2")
+    testImplementation("org.testcontainers:junit-jupiter:1.15.0-rc2")
+    testImplementation("com.github.tomakehurst:wiremock:2.23.2")
+
+    testImplementation("com.nhaarman:mockito-kotlin:1.6.0")
+    testImplementation("org.assertj:assertj-core:3.13.2")
 
     ktlint("com.pinterest:ktlint:0.39.0")
 }

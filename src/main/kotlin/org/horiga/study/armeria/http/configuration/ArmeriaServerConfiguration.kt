@@ -19,10 +19,14 @@ import com.linecorp.armeria.server.metric.MetricCollectingService
 import com.linecorp.armeria.spring.ArmeriaServerConfigurator
 import io.netty.util.AttributeKey
 import org.horiga.study.armeria.http.handler.HelloHandler
-import org.horiga.study.armeria.http.handler.IsbnHandler
+import org.horiga.study.armeria.http.handler.BookHandler
 import org.horiga.study.armeria.http.handler.MyExceptionHandler
 import org.horiga.study.armeria.http.handler.R2dbcHandler
 import org.slf4j.LoggerFactory
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.ConstructorBinding
+import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.context.properties.NestedConfigurationProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.util.UUID
@@ -40,7 +44,19 @@ class MyTestDecorator(delegate: HttpService): SimpleDecoratingHttpService(delega
     }
 }
 
+@ConfigurationProperties(prefix = "myapp")
+@ConstructorBinding
+data class MyApplicationProperties(
+    @NestedConfigurationProperty
+    val book: BookProperties
+) {
+    data class BookProperties(
+        val endpoint: String
+    )
+}
+
 @Configuration
+@EnableConfigurationProperties(MyApplicationProperties::class)
 class ArmeriaServerConfiguration {
 
     // Refs: https://github.com/line/armeria/blob/master/examples/spring-boot-webflux/src/main/java/example/springframework/boot/webflux/HelloConfiguration.java
@@ -48,7 +64,7 @@ class ArmeriaServerConfiguration {
     fun armeriaServerConfigurator(
         helloHandler: HelloHandler,
         r2dbcHandler: R2dbcHandler,
-        isbnHandler: IsbnHandler,
+        bookHandler: BookHandler,
         objectMapper: ObjectMapper,
         exceptionHandler: MyExceptionHandler
     ) = ArmeriaServerConfigurator { sb ->
@@ -73,7 +89,7 @@ class ArmeriaServerConfiguration {
             )
             .responseConverters(JacksonResponseConverterFunction(objectMapper))
             .exceptionHandlers(exceptionHandler)
-            .build(isbnHandler)
+            .build(bookHandler)
 
         sb.annotatedService()
             .decorator(
