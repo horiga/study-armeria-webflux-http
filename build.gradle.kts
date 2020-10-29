@@ -24,8 +24,8 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom("com.linecorp.armeria:armeria-bom:1.1.0")
-        mavenBom("io.netty:netty-bom:4.1.52.Final")
+        mavenBom("com.linecorp.armeria:armeria-bom:1.2.0")
+        mavenBom("io.netty:netty-bom:4.1.53.Final")
         // mavenBom("org.testcontainers:testcontainers-bom:1.14.3")
     }
 }
@@ -40,15 +40,15 @@ dependencies {
 
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
-    implementation("io.micrometer:micrometer-registry-prometheus:1.5.2")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.5.6")
 
     // R2DBC, MySQL
     implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
-    implementation("com.github.jasync-sql:jasync-r2dbc-mysql:1.1.3")
+    implementation("com.github.jasync-sql:jasync-r2dbc-mysql:1.1.4")
 
     // Reactor
-    implementation("io.projectreactor.addons:reactor-extra:3.3.3.RELEASE")
-    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.0.2.RELEASE")
+    implementation("io.projectreactor.addons:reactor-extra:3.4.0")
+    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.1.0")
 
     // Kotlin
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
