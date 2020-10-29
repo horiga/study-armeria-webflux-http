@@ -47,7 +47,7 @@ class BookService(
     val client = WebClient.builder(properties.book.endpoint)
         .responseTimeout(Duration.ofMillis(3000)).build()
 
-    val cache: Cache<String, Book> = Caffeine.newBuilder()
+    val cacheRefs: Cache<String, Book> = Caffeine.newBuilder()
         .maximumSize(100)
         .expireAfterWrite(Duration.ofSeconds(60))
         .recordStats()
@@ -57,7 +57,7 @@ class BookService(
         if (useCache) {
             CacheMono.lookup<String, Book>(
                 { key ->
-                    Mono.justOrEmpty(cache.getIfPresent(key)).map { book ->
+                    Mono.justOrEmpty(cacheRefs.getIfPresent(key)).map { book ->
                         log.info(">> Hit from cached store($key): $book")
                         Signal.next(book)
                     }
@@ -79,7 +79,7 @@ class BookService(
                         log.info(">> andWriteWith: signal.get()=${signal.get()}")
                         signal.get()?.let { book ->
                             log.info("[[ Put to cache store: key=$key ]]")
-                            cache.put(key, book)
+                            cacheRefs.put(key, book)
                         }
                     }
                 }
@@ -123,4 +123,6 @@ class BookService(
             }
         }.toMono()
 
+    // for test
+    fun isCached(isbn: String) = cacheRefs.getIfPresent(isbn) != null
 }
