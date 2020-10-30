@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.jasync.r2dbc.mysql.JasyncConnectionFactory
+import com.github.jasync.sql.db.mysql.pool.MySQLConnectionFactory
 import com.linecorp.armeria.common.HttpRequest
 import com.linecorp.armeria.common.HttpResponse
 import com.linecorp.armeria.common.logging.LogLevel
@@ -18,10 +20,11 @@ import com.linecorp.armeria.server.logging.LoggingService
 import com.linecorp.armeria.server.metric.MetricCollectingService
 import com.linecorp.armeria.spring.ArmeriaServerConfigurator
 import io.netty.util.AttributeKey
-import org.horiga.study.armeria.http.handler.HelloHandler
+import io.r2dbc.spi.ConnectionFactory
 import org.horiga.study.armeria.http.handler.BookHandler
+import org.horiga.study.armeria.http.handler.HelloHandler
 import org.horiga.study.armeria.http.handler.MyExceptionHandler
-import org.horiga.study.armeria.http.handler.R2dbcHandler
+import org.horiga.study.armeria.http.handler.MemberHandler
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
@@ -29,7 +32,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.context.properties.NestedConfigurationProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import java.util.UUID
+import org.springframework.data.r2dbc.connectionfactory.R2dbcTransactionManager
+import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories
+import org.springframework.transaction.annotation.EnableTransactionManagement
+import java.util.*
 
 class MyTestDecorator(delegate: HttpService): SimpleDecoratingHttpService(delegate) {
 
@@ -57,13 +63,15 @@ data class MyApplicationProperties(
 
 @Configuration
 @EnableConfigurationProperties(MyApplicationProperties::class)
+@EnableR2dbcRepositories
+@EnableTransactionManagement
 class ArmeriaServerConfiguration {
 
     // Refs: https://github.com/line/armeria/blob/master/examples/spring-boot-webflux/src/main/java/example/springframework/boot/webflux/HelloConfiguration.java
     @Bean
     fun armeriaServerConfigurator(
         helloHandler: HelloHandler,
-        r2dbcHandler: R2dbcHandler,
+        memberHandler: MemberHandler,
         bookHandler: BookHandler,
         objectMapper: ObjectMapper,
         exceptionHandler: MyExceptionHandler
@@ -108,13 +116,13 @@ class ArmeriaServerConfiguration {
                 MetricCollectingService.newDecorator(
                     MeterIdPrefixFunction
                         .ofDefault("armeria.server.http")
-                        .withTags("service", "test")
+                        .withTags("service", "member")
                 )
             )
             .decorator { delegate -> MyTestDecorator(delegate) }
             .responseConverters(JacksonResponseConverterFunction(objectMapper))
             .exceptionHandlers(exceptionHandler)
-            .build(r2dbcHandler)
+            .build(memberHandler)
     }
 
     @Bean
@@ -128,5 +136,21 @@ class ArmeriaServerConfiguration {
         .configure(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS, false)
         .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
         .configure(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS, false)
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)!!
+
+    @Bean
+    fun connectionFactory(): ConnectionFactory = JasyncConnectionFactory(
+        MySQLConnectionFactory(
+            com.github.jasync.sql.db.Configuration(
+                username = "test",
+                password = "test",
+                host = "localhost",
+                port = 3306,
+                database = "testdb"
+            )
+        )
+    )
+
+    @Bean
+    fun transactionManager() = R2dbcTransactionManager(connectionFactory())
 }
