@@ -23,8 +23,8 @@ import io.netty.util.AttributeKey
 import io.r2dbc.spi.ConnectionFactory
 import org.horiga.study.armeria.http.handler.BookHandler
 import org.horiga.study.armeria.http.handler.HelloHandler
-import org.horiga.study.armeria.http.handler.MyExceptionHandler
 import org.horiga.study.armeria.http.handler.MemberHandler
+import org.horiga.study.armeria.http.handler.MyExceptionHandler
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
@@ -35,9 +35,9 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.data.r2dbc.connectionfactory.R2dbcTransactionManager
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories
 import org.springframework.transaction.annotation.EnableTransactionManagement
-import java.util.*
+import java.util.UUID
 
-class MyTestDecorator(delegate: HttpService): SimpleDecoratingHttpService(delegate) {
+class MyTestDecorator(delegate: HttpService) : SimpleDecoratingHttpService(delegate) {
 
     companion object {
         val log = LoggerFactory.getLogger(MyTestDecorator::class.java)!!

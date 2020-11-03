@@ -8,7 +8,6 @@ import org.springframework.data.relational.core.mapping.Table
 import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import org.springframework.stereotype.Repository
 import reactor.core.publisher.Flux
-import java.time.Instant
 
 @Table("member")
 data class MemberEntity(

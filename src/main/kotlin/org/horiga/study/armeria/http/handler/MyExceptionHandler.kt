@@ -5,7 +5,6 @@ import com.linecorp.armeria.common.HttpRequest
 import com.linecorp.armeria.common.HttpResponse
 import com.linecorp.armeria.common.HttpStatus
 import com.linecorp.armeria.common.MediaType
-import com.linecorp.armeria.common.RequestContext
 import com.linecorp.armeria.server.ServiceRequestContext
 import com.linecorp.armeria.server.annotation.ExceptionHandlerFunction
 import org.horiga.study.armeria.http.configuration.MyTestDecorator
@@ -24,7 +23,13 @@ class MyExceptionHandler(private val objectMapper: ObjectMapper) : ExceptionHand
         req: HttpRequest,
         cause: Throwable
     ): HttpResponse {
-        log.warn("Handle HTTP exception: RequestID: ${ctx.attr(MyTestDecorator.REQUEST_ID)}, ${req.method()} ${req.path()}", cause)
+        log.warn(
+            "Handle HTTP exception: RequestID: {}, {} {}",
+            ctx.attr(MyTestDecorator.REQUEST_ID),
+            req.method(),
+            req.path(),
+            cause
+        )
         val state = when (cause) {
             is IllegalStateException -> HttpStatus.BAD_REQUEST
             else -> HttpStatus.INTERNAL_SERVER_ERROR

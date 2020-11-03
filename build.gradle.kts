@@ -87,5 +87,5 @@ tasks.register<JavaExec>("ktlint") {
     description = "Kotlin code style check with ktlint."
     classpath = configurations.getByName("ktlint")
     main = "com.pinterest.ktlint.Main"
-    args = listOf("--reporter=plain","--reporter=checkstyle,output=${buildDir}/reports/ktlint/ktlint-report.xml", "src/**/*.kt")
+    args = listOf("--reporter=plain","--reporter=checkstyle,output=${buildDir}/reports/ktlint/ktlint-report.xml", "src/main/**/*.kt")
 }

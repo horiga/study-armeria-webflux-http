@@ -58,7 +58,7 @@ class BookService(
             CacheMono.lookup<String, Book>(
                 { key ->
                     Mono.justOrEmpty(cacheRefs.getIfPresent(key)).map { book ->
-                        log.info(">> Hit from cached store($key): $book")
+                        log.info(">> Hit from cached store({}): {}", key, book)
                         Signal.next(book)
                     }
                 },
@@ -76,15 +76,15 @@ class BookService(
                 }
                 .andWriteWith { key, signal ->
                     Mono.fromRunnable<Void> {
-                        log.info(">> andWriteWith: signal.get()=${signal.get()}")
+                        log.info(">> andWriteWith: signal.get()={}", signal.get())
                         signal.get()?.let { book ->
-                            log.info("[[ Put to cache store: key=$key ]]")
+                            log.info("[[ Put to cache store: key={} ]]", key)
                             cacheRefs.put(key, book)
                         }
                     }
                 }
                 .onErrorResume { err ->
-                    log.error("Error, fetch from cache or network. isbn=$isbn", err)
+                    log.error("Error, fetch from cache or network. isbn={}", isbn, err)
                     Mono.just(Book.empty())
                 }
         } else fromNetwork(isbn)
@@ -103,9 +103,8 @@ class BookService(
                 res.status().isSuccess -> {
                     val content = res.contentUtf8()
                     log.info(
-                        "fetch from network!! ISBN=$isbn, " +
-                            "res.contentUtf8().isEmpty()=${res.contentUtf8().isEmpty()}, "
-                        // "content=$content"
+                        "fetch from network!! ISBN={}, res.contentUtf8().isEmpty()={} ",
+                        isbn, res.contentUtf8().isEmpty()
                     )
                     if (res.contentUtf8().isEmpty()) return@handleAsync null
                     val result: List<Book> = objectMapper.readValue(content)
@@ -114,9 +113,8 @@ class BookService(
                 }
                 else -> {
                     log.info(
-                        "Received HTTP ${
-                            res.status().code()
-                        } from /v1/get?isbn=$isbn, ${res.contentUtf8()}"
+                        "Received HTTP {} from /v1/get?isbn={}, {}",
+                        res.status().code(), isbn, res.contentUtf8()
                     )
                     throw IllegalStateException("Received HTTP ${res.status().code()} from /v1/get?isbn=$isbn")
                 }
