@@ -26,7 +26,6 @@ dependencyManagement {
     imports {
         mavenBom("com.linecorp.armeria:armeria-bom:1.2.0")
         mavenBom("io.netty:netty-bom:4.1.53.Final")
-        // mavenBom("org.testcontainers:testcontainers-bom:1.14.3")
     }
 }
 
